@@ -1,6 +1,6 @@
 # User-specific stuff
 .idea/
-.vscode/
+# .vscode/ Use the same vscode settings for formatter.
 
 *.iml
 *.ipr
