@@ -3,9 +3,9 @@ package net.mvndicraft.templateworldregenerator;
 import co.aikar.commands.PaperCommandManager;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import net.thenextlvl.worlds.WorldsAccess;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,16 +23,32 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new TemplateWorldRegeneratorCommand());
 
-        // Bukkit.getGlobalRegionScheduler().run(this, task -> {
-        // WorldCreator creator = new WorldCreator("world_template");
-        // creator.environment(World.Environment.NORMAL);
+        // loadFromWorld();
+    }
 
-        // from = Bukkit.createWorld(creator);
-        // info("New world loaded: " + from.getName());
+    public void loadFromWorld() {
+        // info("getWorldRegistry:" + WorldsAccess.access().getWorldRegistry().entrySet().map(t -> t.toString()).toList());
+        // info("isRegistered:" + WorldsAccess.access().getWorldRegistry().isRegistered(Key.key("worlds:world_template")));
+        // info("get:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get());
+        // info("get.class:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get().getClass());
+        // info("getdimension:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get().dimension());
+
+
+        // try {
+        // info("world get:" + WorldsAccess.access().load(Key.key("worlds:world_template")).get());
+        // } catch (Exception e) {
+        // warning("world get failed for " + e + " " + e.getMessage());
+        // }
+
+        // // WorldsAccess.access().load(Key.key("minecraft:overworld")).whenComplete((world, t) -> {
+        // WorldsAccess.access().load(Key.key("worlds:world_template")).whenComplete((world, t) -> {
+        // info("----------------------------------------------------------------------------------------");
+        // info("t=" + t.getMessage());
+        // info("tgetMessage=" + t.getMessage());
+        // from = world;
+        // info("world loaded: " + world);
+        // info("from loaded: " + from);
         // });
-
-        WorldsAccess.access();
-
     }
 
     public static TemplateWorldRegeneratorPlugin getInstance() { return getPlugin(TemplateWorldRegeneratorPlugin.class); }
@@ -43,13 +59,8 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
 
     public World getFromWorld() {
         if (from == null) {
-            info("from not loaded");
-            WorldsAccess.access();
-
-            // WorldsAccess.access().load(Key.key("worlds:world_template")).whenComplete((world, t) -> {
-            // from = world;
-            // info("from loaded: " + from);
-            // });
+            from = Bukkit.getWorld(NamespacedKey.fromString("worlds:world_template"));
+            info("from loaded from bukkit: " + from);
         }
         return from;
     }

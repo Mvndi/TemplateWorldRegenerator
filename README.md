@@ -47,6 +47,8 @@ The plugin jar file will be in build/libs/
 
 ```
 /world import "world_template" worlds:world_template dimension minecraft:overworld
+/tp 105852 100 30588
 /world teleport minecraft:overworld Hydrolien ~ ~ ~
+/world teleport mvndi:overworld Hydrolien ~ ~ ~
 /world teleport worlds:world_template Hydrolien ~ ~ ~
 ```
