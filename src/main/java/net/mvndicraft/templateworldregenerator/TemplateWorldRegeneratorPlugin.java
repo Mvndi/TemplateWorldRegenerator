@@ -3,7 +3,6 @@ package net.mvndicraft.templateworldregenerator;
 import co.aikar.commands.PaperCommandManager;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import net.kyori.adventure.key.Key;
 import net.thenextlvl.worlds.WorldsAccess;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -32,6 +31,8 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
         // info("New world loaded: " + from.getName());
         // });
 
+        WorldsAccess.access();
+
     }
 
     public static TemplateWorldRegeneratorPlugin getInstance() { return getPlugin(TemplateWorldRegeneratorPlugin.class); }
@@ -43,11 +44,12 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
     public World getFromWorld() {
         if (from == null) {
             info("from not loaded");
+            WorldsAccess.access();
 
-            WorldsAccess.access().load(Key.key("worlds:world_template")).whenComplete((world, t) -> {
-                from = world;
-                info("from loaded: " + from);
-            });
+            // WorldsAccess.access().load(Key.key("worlds:world_template")).whenComplete((world, t) -> {
+            // from = world;
+            // info("from loaded: " + from);
+            // });
         }
         return from;
     }
