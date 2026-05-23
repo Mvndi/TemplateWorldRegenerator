@@ -40,3 +40,13 @@ The plugin jar file will be in build/libs/
 - Custom copy rule for leaves in chunks that are at the border:
   - Add the leaves that are outside the regenerated area but that replace air and are connected to logs inside the regenerated area.
   - Remove the leaves that have been placed but that are not connected to logs
+
+
+
+## Note
+
+```
+/world import "world_template" worlds:world_template dimension minecraft:overworld
+/world teleport minecraft:overworld Hydrolien ~ ~ ~
+/world teleport worlds:world_template Hydrolien ~ ~ ~
+```

@@ -13,10 +13,11 @@ plugins {
 group = "net.mvndicraft.${project.name.lowercase()}"
 version = "0.1.0"
 description = "Regenerates selected chunks from a template world into a live world."
-var mainMinecraftVersion = "1.21.11" // 26.1.2
+var mainMinecraftVersion = "26.1.2" // 
 val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 
-val worldsVersion = "3.12.4"
+// val worldsVersion = "3.12.4"
+val worldsVersion = "4.2.2"
 
 
 repositories {
@@ -30,8 +31,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
-    // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
+    // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
     implementation("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
@@ -42,7 +43,7 @@ dependencies {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(21)) // 25
+  toolchain.languageVersion.set(JavaLanguageVersion.of(25)) // 25
 }
 
 checkstyle {
@@ -102,22 +103,29 @@ tasks {
 
     runServer {
         minecraftVersion("$mainMinecraftVersion")
+        downloadPlugins {
+            hangar("Worlds", "$worldsVersion")
+        }
     }
-    runPaper.folia.registerTask()
+    runPaper.folia.registerTask() {
+        downloadPlugins {
+            hangar("Worlds", "$worldsVersion")
+        }
+    }
 
     test {
         useJUnitPlatform()
     }
 }
 
-@Suppress("UnstableApiUsage")
-tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
-    javaLauncher = javaToolchains.launcherFor {
-        vendor = JvmVendorSpec.JETBRAINS
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
-}
+// @Suppress("UnstableApiUsage")
+// tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
+//     javaLauncher = javaToolchains.launcherFor {
+//         vendor = JvmVendorSpec.JETBRAINS
+//         languageVersion = JavaLanguageVersion.of(25)
+//     }
+//     jvmArgs("-XX:+AllowEnhancedClassRedefinition")
+// }
 
 tasks.register("echoVersion") {
     group = "documentation"

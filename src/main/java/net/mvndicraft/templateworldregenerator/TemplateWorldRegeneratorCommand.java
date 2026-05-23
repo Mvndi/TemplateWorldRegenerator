@@ -8,8 +8,6 @@ import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
 import net.kyori.adventure.text.Component;
 import net.mvndicraft.templateworldregenerator.regeneration.ChunkRegenerator;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -36,9 +34,9 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
             int chunkX = player.getLocation().getBlockX() / 16;
             int chunkZ = player.getLocation().getBlockZ() / 16;
             TemplateWorldRegeneratorPlugin.debug("regenerateChunk runned by a player in " + chunkX + " " + chunkZ);
-            World from = Bukkit.getWorld("world_template");
-            World to = Bukkit.getWorld("world");
-            new ChunkRegenerator(chunkX, chunkZ, from, to).run();
+
+            new ChunkRegenerator(chunkX, chunkZ, TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
+                    TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
         }
     }
 

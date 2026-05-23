@@ -6,3 +6,8 @@ folia-supported: true
 authors: [ Hydrolien ]
 description: $description
 website: https://github.com/Mvndi/$name
+dependencies:
+  server:
+    Worlds:
+      required: true
+      load: BEFORE
