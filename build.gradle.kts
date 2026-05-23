@@ -33,7 +33,7 @@ repositories {
 dependencies {
     // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
-    implementation("net.thenextlvl:worlds:$worldsVersion")
+    compileOnly("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
