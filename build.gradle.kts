@@ -16,6 +16,8 @@ description = "Regenerates selected chunks from a template world into a live wor
 var mainMinecraftVersion = "1.21.11" // 26.1.2
 val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 
+val worldsVersion = "3.12.4"
+
 
 repositories {
     mavenLocal()
@@ -24,11 +26,13 @@ repositories {
     // Paper
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://repo.thenextlvl.net/releases")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
     // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
+    implementation("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
