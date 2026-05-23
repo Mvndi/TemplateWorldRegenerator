@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "net.mvndicraft.${project.name.lowercase()}"
-version = "0.0.1"
+version = "0.1.0"
 description = "Regenerates selected chunks from a template world into a live world."
 var mainMinecraftVersion = "1.21.11" // 26.1.2
 val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2

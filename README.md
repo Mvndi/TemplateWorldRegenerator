@@ -21,3 +21,22 @@ Download the latest version from [the releases](https://modrinth.com/plugin/temp
 ## Build
 `./gradlew assemble`
 The plugin jar file will be in build/libs/
+
+
+## TODO
+
+- Kill old mobs and replace them with the template world ones.
+- Try with mvndi datapack in both world.
+- Copy biomes from the template world
+- Allow large area to be copy paste with progess display as in chunky
+- Avoid Town + x chunks when copypasting large area (Towny)
+- Avoid Roads when copypasting large area (TownyRoads)
+- Avoid deep ocean when when copypasting large area (from configured biome)
+
+
+
+### TODO minor world improvement
+
+- Custom copy rule for leaves in chunks that are at the border:
+  - Add the leaves that are outside the regenerated area but that replace air and are connected to logs inside the regenerated area.
+  - Remove the leaves that have been placed but that are not connected to logs
