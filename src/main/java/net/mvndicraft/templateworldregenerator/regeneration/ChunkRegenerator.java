@@ -2,11 +2,9 @@ package net.mvndicraft.templateworldregenerator.regeneration;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -20,22 +18,20 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
             TemplateWorldRegeneratorPlugin.debug("Inside from world");
             Chunk chunkFrom = from().getChunkAt(chunkX(), chunkZ());
-            ChunkSnapshot snapshotFrom = chunkFrom.getChunkSnapshot();
-            TemplateWorldRegeneratorPlugin.debug("snapshotFrom created");
-            Map<EntitySnapshot, Location> entitySnapshotsFrom = Arrays.stream(chunkFrom.getEntities())
-                    .collect(Collectors.toMap(Entity::createSnapshot, Entity::getLocation));
-            applySnapshot(snapshotFrom, entitySnapshotsFrom);
+            TWRChunkSnapshot twrChunkSnapshot = new TWRChunkSnapshot(chunkFrom);
+            applySnapshot(twrChunkSnapshot);
         });
 
     }
 
-    private void applySnapshot(ChunkSnapshot snapshotFrom, Map<EntitySnapshot, Location> entitySnapshotsFrom) {
+    private void applySnapshot(TWRChunkSnapshot twrChunkSnapshot) {
 
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), to(), chunkX(), chunkZ(), t -> {
             Chunk chunkTo = to().getChunkAt(chunkX(), chunkZ());
             killEntities(chunkTo);
-            replaceBlocks(snapshotFrom, chunkTo);
-            placeEntities(entitySnapshotsFrom);
+            replaceBlocks(twrChunkSnapshot, chunkTo);
+            placeEntities(twrChunkSnapshot);
+            replacePdcData(twrChunkSnapshot, chunkTo);
         });
     }
 
@@ -49,12 +45,12 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
     /**
      * To run on the chunkTo region scheduler
      */
-    private void replaceBlocks(ChunkSnapshot snapshotFrom, Chunk chunkTo) {
+    private void replaceBlocks(TWRChunkSnapshot twrChunkSnapshot, Chunk chunkTo) {
         for (int bx = 0; bx < 16; bx++) {
             for (int bz = 0; bz < 16; bz++) {
                 for (int y = to().getMinHeight(); y < to().getMaxHeight(); y++) {
 
-                    BlockData data = snapshotFrom.getBlockData(bx, y, bz);
+                    BlockData data = twrChunkSnapshot.chunkSnapshot().getBlockData(bx, y, bz);
 
                     chunkTo.getBlock(bx, y, bz).setBlockData(data, false);
                 }
@@ -62,10 +58,21 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
         }
     }
 
-    private void placeEntities(Map<EntitySnapshot, Location> entitySnapshotsFrom) {
-        for (Map.Entry<EntitySnapshot, Location> entry : entitySnapshotsFrom.entrySet()) {
+    private void placeEntities(TWRChunkSnapshot twrChunkSnapshot) {
+        for (Map.Entry<EntitySnapshot, Location> entry : twrChunkSnapshot.entitySnapshots().entrySet()) {
             Location newLocation = new Location(to(), entry.getValue().getX(), entry.getValue().getY(), entry.getValue().getZ());
             entry.getKey().createEntity(newLocation);
+        }
+    }
+
+    public void replacePdcData(TWRChunkSnapshot twrChunkSnapshot, Chunk chunkTo) {
+        byte[] pdcData = twrChunkSnapshot.pdcData();
+        if (pdcData.length != 0) {
+            try {
+                chunkTo.getPersistentDataContainer().readFromBytes(twrChunkSnapshot.pdcData(), true);
+            } catch (Exception e) {
+                TemplateWorldRegeneratorPlugin.warning("Failed to replace PDC data", e);
+            }
         }
     }
 }
