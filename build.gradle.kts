@@ -13,11 +13,11 @@ plugins {
 group = "net.mvndicraft.${project.name.lowercase()}"
 version = "0.1.0"
 description = "Regenerates selected chunks from a template world into a live world."
-var mainMinecraftVersion = "26.1.2" // 
+var mainMinecraftVersion = "1.21.11" // 
 val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 
-// val worldsVersion = "3.12.4"
-val worldsVersion = "4.2.2"
+val worldsVersion = "3.12.4"
+// val worldsVersion = "4.2.2"
 
 
 repositories {
@@ -31,8 +31,8 @@ repositories {
 }
 
 dependencies {
-    // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
+    compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
+    // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
     compileOnly("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
