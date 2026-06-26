@@ -3,6 +3,8 @@ package net.mvndicraft.templateworldregenerator;
 import co.aikar.commands.PaperCommandManager;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import net.mvndicraft.templateworldregenerator.regeneration.ChunkLoadListener;
+import net.mvndicraft.templateworldregenerator.regeneration.WorldRegenerator;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -10,8 +12,12 @@ import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
+    private NamespacedKey lastRegenerationDateKey;
     private World from;
     private World to;
+    private WorldRegenerator worldRegenerator;
+
+    public TemplateWorldRegeneratorPlugin() { lastRegenerationDateKey = new NamespacedKey(this, "last_regeneration_date"); }
 
     @Override
     public void onEnable() {
@@ -20,10 +26,14 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
         // Save config in our plugin data folder if it does not exist.
         saveDefaultConfig();
 
+        worldRegenerator = new WorldRegenerator();
+
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new TemplateWorldRegeneratorCommand());
 
         // loadFromWorld();
+
+        getServer().getPluginManager().registerEvents(new ChunkLoadListener(), this);
     }
 
     public void loadFromWorld() {
@@ -55,6 +65,10 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
 
     @Override
     public void reloadConfig() { super.reloadConfig(); }
+
+    public WorldRegenerator getWorldRegenerator() { return worldRegenerator; }
+
+    public NamespacedKey getLastRegenerationDateKey() { return lastRegenerationDateKey; }
 
 
     public World getFromWorld() {

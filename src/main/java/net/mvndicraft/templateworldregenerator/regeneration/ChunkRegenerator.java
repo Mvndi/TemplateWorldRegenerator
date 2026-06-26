@@ -11,6 +11,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
+import org.bukkit.persistence.PersistentDataType;
 
 public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
 
@@ -32,6 +33,8 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
             replaceBlocks(twrChunkSnapshot, chunkTo);
             placeEntities(twrChunkSnapshot);
             replacePdcData(twrChunkSnapshot, chunkTo);
+            saveLastRegenerationDate(chunkTo);
+            TemplateWorldRegeneratorPlugin.debug(() -> "Regenerated chunk " + chunkX() + " " + chunkZ());
         });
     }
 
@@ -74,5 +77,10 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
                 TemplateWorldRegeneratorPlugin.warning("Failed to replace PDC data", e);
             }
         }
+    }
+
+    public void saveLastRegenerationDate(Chunk chunkTo) {
+        chunkTo.getPersistentDataContainer().set(TemplateWorldRegeneratorPlugin.getInstance().getLastRegenerationDateKey(),
+                PersistentDataType.LONG, System.currentTimeMillis());
     }
 }

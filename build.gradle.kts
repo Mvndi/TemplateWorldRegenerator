@@ -18,6 +18,7 @@ val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 
 val worldsVersion = "3.12.4"
 // val worldsVersion = "4.2.2"
+val chunkyVersion = "1.4.55"
 
 
 repositories {
@@ -28,6 +29,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://repo.thenextlvl.net/releases")
+    maven("https://repo.codemc.io/repository/maven-public/") // For Chunky
 }
 
 dependencies {
@@ -37,6 +39,8 @@ dependencies {
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
+
+    compileOnly("org.popcraft:chunky-common:$chunkyVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testImplementation("com.github.seeseemelk:MockBukkit-v1.21:3.107.0")
@@ -105,11 +109,13 @@ tasks {
         minecraftVersion("$mainMinecraftVersion")
         downloadPlugins {
             hangar("Worlds", "$worldsVersion")
+            hangar("Chunky", "$chunkyVersion")
         }
     }
     runPaper.folia.registerTask() {
         downloadPlugins {
             hangar("Worlds", "$worldsVersion")
+            hangar("Chunky", "$chunkyVersion")
         }
     }
 
@@ -117,15 +123,6 @@ tasks {
         useJUnitPlatform()
     }
 }
-
-// @Suppress("UnstableApiUsage")
-// tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
-//     javaLauncher = javaToolchains.launcherFor {
-//         vendor = JvmVendorSpec.JETBRAINS
-//         languageVersion = JavaLanguageVersion.of(25)
-//     }
-//     jvmArgs("-XX:+AllowEnhancedClassRedefinition")
-// }
 
 tasks.register("echoVersion") {
     group = "documentation"

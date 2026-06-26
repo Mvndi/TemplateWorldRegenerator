@@ -40,4 +40,20 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
         }
     }
 
+    @Subcommand("regenerateWorld")
+    @Description("Regenerate the whole world except town & roads")
+    public static void onRegenerateWorld(CommandSender commandSender, int x1, int z1, int x2, int z2) {
+        TemplateWorldRegeneratorPlugin.debug("regenerateWorld runned by " + commandSender.getName());
+        commandSender.sendMessage(Component.text("World regeneration started"));
+        TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().addAreaToChunksToRegenerate(x1, z1, x2, z2);
+    }
+
+    @Subcommand("stopRegeneration")
+    @Description("Stops regeneration of the world")
+    public static void onStopRegeneration(CommandSender commandSender) {
+        TemplateWorldRegeneratorPlugin.debug("stopRegeneration runned by " + commandSender.getName());
+        commandSender.sendMessage(Component.text("Regeneration stopped"));
+        TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().stopRegeneration();
+    }
+
 }
