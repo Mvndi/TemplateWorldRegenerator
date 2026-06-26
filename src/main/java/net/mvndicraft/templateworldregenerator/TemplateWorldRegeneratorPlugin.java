@@ -3,12 +3,17 @@ package net.mvndicraft.templateworldregenerator;
 import co.aikar.commands.PaperCommandManager;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import net.mvndicraft.templateworldregenerator.handlers.TownyHandler;
+import net.mvndicraft.templateworldregenerator.handlers.TownyRoadsHandler;
 import net.mvndicraft.templateworldregenerator.regeneration.ChunkLoadListener;
 import net.mvndicraft.templateworldregenerator.regeneration.WorldRegenerator;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
@@ -16,6 +21,8 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
     private World from;
     private World to;
     private WorldRegenerator worldRegenerator;
+    private boolean townyEnabled;
+    private boolean townyRoadsEnabled;
 
     public TemplateWorldRegeneratorPlugin() { lastRegenerationDateKey = new NamespacedKey(this, "last_regeneration_date"); }
 
@@ -25,6 +32,7 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
 
         // Save config in our plugin data folder if it does not exist.
         saveDefaultConfig();
+        initPluginBoolean();
 
         worldRegenerator = new WorldRegenerator();
 
@@ -64,7 +72,22 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
     public static TemplateWorldRegeneratorPlugin getInstance() { return getPlugin(TemplateWorldRegeneratorPlugin.class); }
 
     @Override
-    public void reloadConfig() { super.reloadConfig(); }
+    public void reloadConfig() {
+        super.reloadConfig();
+        initPluginBoolean();
+    }
+
+    private void initPluginBoolean() {
+        Plugin towny = getServer().getPluginManager().getPlugin("Towny");
+        townyEnabled = (towny != null && towny.isEnabled());
+        debug("townyEnabled: " + townyEnabled);
+
+        if (townyEnabled) {
+            Plugin townyRoads = getServer().getPluginManager().getPlugin("TownyRoads");
+            townyRoadsEnabled = (townyRoads != null && townyRoads.isEnabled());
+        }
+        debug("townyRoadsEnabled: " + townyRoadsEnabled);
+    }
 
     public WorldRegenerator getWorldRegenerator() { return worldRegenerator; }
 
@@ -85,6 +108,15 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
             info("to loaded: " + to);
         }
         return to;
+    }
+
+    /**
+     * Test if the to world have a town or a road at that location.
+     * Towny & TownyRoads are optinal dependencies and it will always return false if they are not enabled.
+     */
+    public boolean isTownOrRoad(Chunk chunk) {
+        Location toTestLocation = new Location(getToWorld(), chunk.getX() * 16D, 0D, chunk.getZ() * 16D);
+        return (townyEnabled && TownyHandler.isTown(toTestLocation)) || (townyRoadsEnabled && TownyRoadsHandler.isRoad(toTestLocation));
     }
 
     // Usual log with debug level

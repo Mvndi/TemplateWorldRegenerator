@@ -3,9 +3,9 @@ package net.mvndicraft.templateworldregenerator.regeneration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
+import net.mvndicraft.templateworldregenerator.util.ChunkCoordinate;
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.popcraft.chunky.util.ChunkCoordinate;
 
 public class WorldRegenerator {
     private Set<ChunkCoordinate> chunksToRegenerate = ConcurrentHashMap.newKeySet();
@@ -35,7 +35,7 @@ public class WorldRegenerator {
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
         World fromWorld = chunk.getWorld();
         if (fromWorld.getUID() == TemplateWorldRegeneratorPlugin.getInstance().getFromWorld().getUID()
-                && chunksToRegenerate.contains(chunkCoordinate)) {
+                && chunksToRegenerate.contains(chunkCoordinate) && TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
             chunksToRegenerate.remove(chunkCoordinate);
             new ChunkRegenerator(chunk.getX(), chunk.getZ(), fromWorld, TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
         }

@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "net.mvndicraft.${project.name.lowercase()}"
-version = "0.1.0"
+version = "0.2.0"
 description = "Regenerates selected chunks from a template world into a live world."
 var mainMinecraftVersion = "1.21.11" // 
 val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
@@ -19,6 +19,8 @@ val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 val worldsVersion = "3.12.4"
 // val worldsVersion = "4.2.2"
 val chunkyVersion = "1.4.55"
+val townyVersion = "0.103.0.0"
+val townyRoadsVersion = "0.7.0"
 
 
 repositories {
@@ -30,6 +32,7 @@ repositories {
     maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://repo.thenextlvl.net/releases")
     maven("https://repo.codemc.io/repository/maven-public/") // For Chunky
+    maven("https://repo.glaremasters.me/repository/towny/") // For Towny
 }
 
 dependencies {
@@ -40,7 +43,9 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.2.1")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
 
-    compileOnly("org.popcraft:chunky-common:$chunkyVersion")
+    // compileOnly("org.popcraft:chunky-common:$chunkyVersion")
+    compileOnly("com.palmergames.bukkit.towny:towny:$townyVersion")
+    compileOnly("net.mvndicraft.townyroads:townyroads:$townyRoadsVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testImplementation("com.github.seeseemelk:MockBukkit-v1.21:3.107.0")

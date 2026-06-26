@@ -12,5 +12,11 @@ dependencies:
       required: true
       load: BEFORE
     Chunky:
-      required: true
+      required: false
+      load: BEFORE
+    Towny:
+      required: false
+      load: BEFORE
+    TownyRoads:
+      required: false
       load: BEFORE
