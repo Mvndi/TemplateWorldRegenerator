@@ -18,7 +18,7 @@ val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
 
 val worldsVersion = "3.12.4"
 // val worldsVersion = "4.2.2"
-val chunkyVersion = "1.4.55"
+val chunkyVersion = "1.4.40"
 val townyVersion = "0.103.0.0"
 val townyRoadsVersion = "0.7.0"
 
