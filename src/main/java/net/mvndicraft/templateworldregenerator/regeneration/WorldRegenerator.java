@@ -34,7 +34,8 @@ public class WorldRegenerator {
     public void regenerateIfNeeded(Chunk chunk) {
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
         World fromWorld = chunk.getWorld();
-        if (fromWorld.getUID() == TemplateWorldRegeneratorPlugin.getInstance().getFromWorld().getUID()
+        if (TemplateWorldRegeneratorPlugin.getInstance().getFromWorld() != null
+                && fromWorld.getUID() == TemplateWorldRegeneratorPlugin.getInstance().getFromWorld().getUID()
                 && chunksToRegenerate.contains(chunkCoordinate) && TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
             chunksToRegenerate.remove(chunkCoordinate);
             new ChunkRegenerator(chunk.getX(), chunk.getZ(), fromWorld, TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
