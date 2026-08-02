@@ -1,2 +1,4 @@
 debug: false
 
+to_world: "world"
+from_world: "world_template"

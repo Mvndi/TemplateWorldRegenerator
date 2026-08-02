@@ -15,11 +15,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
     private NamespacedKey lastRegenerationDateKey;
-    private World from;
-    private World to;
+    @SuppressWarnings("java:S3077")
+    private volatile World from;
+    @SuppressWarnings("java:S3077")
+    private volatile World to;
     private WorldRegenerator worldRegenerator;
     private boolean townyEnabled;
     private boolean townyRoadsEnabled;
@@ -69,19 +72,31 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
 
 
     public World getFromWorld() {
-        if (from == null) {
-            from = Bukkit.getWorld(NamespacedKey.fromString("worlds:world_template"));
-            info("from loaded from bukkit: " + from);
+        if (from != null) {
+            return from;
         }
-        return from;
+
+        synchronized (this) {
+            if (from == null) {
+                from = getWorld("from_world");
+                info("from loaded from bukkit: " + from + " " + from.getUID());
+            }
+            return from;
+        }
     }
 
     public World getToWorld() {
-        if (to == null) {
-            to = Bukkit.getWorld("world");
-            info("to loaded: " + to);
+        if (to != null) {
+            return to;
         }
-        return to;
+
+        synchronized (this) {
+            if (to == null) {
+                to = getWorld("to_world");
+                info("to loaded from bukkit: " + to + " " + to.getUID());
+            }
+            return to;
+        }
     }
 
     /**
@@ -91,6 +106,18 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
     public boolean isTownOrRoad(Chunk chunk) {
         Location toTestLocation = new Location(getToWorld(), chunk.getX() * 16D, 0D, chunk.getZ() * 16D);
         return (townyEnabled && TownyHandler.isTown(toTestLocation)) || (townyRoadsEnabled && TownyRoadsHandler.isRoad(toTestLocation));
+    }
+
+    public @Nullable World getWorld(String configName) {
+        String worldName = getConfig().getString(configName);
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            NamespacedKey key = NamespacedKey.fromString(configName);
+            if (key != null) {
+                world = Bukkit.getWorld(key);
+            }
+        }
+        return world;
     }
 
     // Usual log with debug level

@@ -32,13 +32,20 @@ public class WorldRegenerator {
     public int getChunksToRegenerateCount() { return chunksToRegenerate.size(); }
 
     public void regenerateIfNeeded(Chunk chunk) {
+        TemplateWorldRegeneratorPlugin.debug("regenerateIfNeeded runned for chunk " + chunk.getX() + " " + chunk.getZ());
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
-        World fromWorld = chunk.getWorld();
-        if (TemplateWorldRegeneratorPlugin.getInstance().getFromWorld() != null
-                && fromWorld.getUID() == TemplateWorldRegeneratorPlugin.getInstance().getFromWorld().getUID()
-                && chunksToRegenerate.contains(chunkCoordinate) && TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
+        World toWorld = chunk.getWorld();
+        if (TemplateWorldRegeneratorPlugin.getInstance().getFromWorld() != null // source exist
+                // it's the to world where to replace
+                && toWorld.getUID() == TemplateWorldRegeneratorPlugin.getInstance().getToWorld().getUID()
+                // it a chunk to regenerate
+                && chunksToRegenerate.contains(chunkCoordinate)
+                // it's not a town or a road
+                && !TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
+            TemplateWorldRegeneratorPlugin.debug("Regenerating chunk " + chunk.getX() + " " + chunk.getZ());
             chunksToRegenerate.remove(chunkCoordinate);
-            new ChunkRegenerator(chunk.getX(), chunk.getZ(), fromWorld, TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
+            new ChunkRegenerator(chunk.getX(), chunk.getZ(), TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
+                    TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
         }
     }
 }
