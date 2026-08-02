@@ -39,34 +39,8 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new TemplateWorldRegeneratorCommand());
 
-        // loadFromWorld();
 
         getServer().getPluginManager().registerEvents(new ChunkLoadListener(), this);
-    }
-
-    public void loadFromWorld() {
-        // info("getWorldRegistry:" + WorldsAccess.access().getWorldRegistry().entrySet().map(t -> t.toString()).toList());
-        // info("isRegistered:" + WorldsAccess.access().getWorldRegistry().isRegistered(Key.key("worlds:world_template")));
-        // info("get:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get());
-        // info("get.class:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get().getClass());
-        // info("getdimension:" + WorldsAccess.access().getWorldRegistry().get(Key.key("worlds:world_template")).get().dimension());
-
-
-        // try {
-        // info("world get:" + WorldsAccess.access().load(Key.key("worlds:world_template")).get());
-        // } catch (Exception e) {
-        // warning("world get failed for " + e + " " + e.getMessage());
-        // }
-
-        // // WorldsAccess.access().load(Key.key("minecraft:overworld")).whenComplete((world, t) -> {
-        // WorldsAccess.access().load(Key.key("worlds:world_template")).whenComplete((world, t) -> {
-        // info("----------------------------------------------------------------------------------------");
-        // info("t=" + t.getMessage());
-        // info("tgetMessage=" + t.getMessage());
-        // from = world;
-        // info("world loaded: " + world);
-        // info("from loaded: " + from);
-        // });
     }
 
     public static TemplateWorldRegeneratorPlugin getInstance() { return getPlugin(TemplateWorldRegeneratorPlugin.class); }
