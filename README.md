@@ -25,13 +25,9 @@ The plugin jar file will be in build/libs/
 
 ## TODO
 
-- Kill old mobs and replace them with the template world ones.
-- Try with mvndi datapack in both world.
-- Copy biomes from the template world
-- Allow large area to be copy paste with progess display as in chunky
-- Avoid Town + x chunks when copypasting large area (Towny)
-- Avoid Roads when copypasting large area (TownyRoads)
+- Copy biomes from the template world (confiurable)
 - Avoid deep ocean when when copypasting large area (from configured biome)
+- Find a non laggy way to load the world
 
 
 
