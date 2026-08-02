@@ -42,7 +42,7 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
      * To run on the chunkTo region scheduler
      */
     private void killEntities(Chunk chunkTo) {
-        Arrays.stream(chunkTo.getEntities()).filter(entity -> entity.getType() == EntityType.PLAYER).forEach(Entity::remove);
+        Arrays.stream(chunkTo.getEntities()).filter(entity -> entity.getType() != EntityType.PLAYER).forEach(Entity::remove);
     }
 
     /**
