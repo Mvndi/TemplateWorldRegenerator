@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     id("com.gradleup.shadow") version "9.3.1" // "9.4.1"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" // paperweight // Check for new versions at https://plugins.gradle.org/plugin/io.papermc.paperweight.userdev
     `maven-publish`
     checkstyle // Ensures correctly formatted code
     pmd // Code quality checks
@@ -11,10 +12,10 @@ plugins {
 }
 
 group = "net.mvndicraft.${project.name.lowercase()}"
-version = "0.2.2"
+version = "0.2.3"
 description = "Regenerates selected chunks from a template world into a live world."
 var mainMinecraftVersion = "1.21.11" // 
-val supportedMinecraftVersions = "1.20 - 1.21.11" // 26.1.2
+val supportedMinecraftVersions = "1.21.11" // 26.1.2
 
 val worldsVersion = "3.12.4"
 // val worldsVersion = "4.2.2"
@@ -36,8 +37,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
+    // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion-R0.1-SNAPSHOT")
     // compileOnly("io.papermc.paper:paper-api:$mainMinecraftVersion.build.+")
+    paperweight.paperDevBundle("$mainMinecraftVersion-R0.1-SNAPSHOT")
+    // paperweight.paperDevBundle("$mainMinecraftVersion.build.+")
+    compileOnly("net.kyori:adventure-text-serializer-ansi:4.17.0") // TODO to remove when paper weight latest version will be fixed. It's supposed to be in paperweight.
+
     compileOnly("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
@@ -234,23 +239,82 @@ hangarPublish { // ./gradlew publishPluginPublicationToHangar
 
 // Do an array of game versions from supportedMinecraftVersions
 fun expandMinecraftVersions(range: String): List<String> {
-    val latestPatches = mapOf("1.20" to 6, "1.21" to 11) //, "26.1" to 2
 
-    fun String.toMinorAndPatch() = split('.').let {
-        if (it.size == 2) it.joinToString(".") to 0 else "${it[0]}.${it[1]}" to it[2].toInt()
+    val latestPatches = linkedMapOf(
+        "1.20" to 6,
+        "1.21" to 11,
+        "26.1" to 2,
+        "26.2" to 0
+    )
+
+    data class Version(
+        val base: String,
+        val patch: Int
+    )
+
+    fun parse(version: String): Version {
+        val parts = version.trim().split('.')
+
+        return if (parts.size <= 2) {
+            Version(parts.joinToString("."), 0)
+        } else {
+            Version(
+                parts.dropLast(1).joinToString("."),
+                parts.last().toInt()
+            )
+        }
     }
 
-    val (startMinor, startPatch) = range.split(" - ")[0].trim().toMinorAndPatch()
-    val (endMinor, endPatch) = range.split(" - ")[1].trim().toMinorAndPatch()
+    if(!range.contains(" - ")) {
+        return listOf(range)
+    }
+    val (startStr, endStr) = range.split(" - ").map(String::trim)
 
-    return generateSequence(startMinor) { current ->
-        val (major, minor) = current.split('.').map { it.toInt() }
-        if (current == endMinor) null else "%d.%d".format(major, minor + 1)
-    }.flatMap { minor ->
-        val from = if (minor == startMinor) startPatch else 0
-        val to = if (minor == endMinor) endPatch else latestPatches[minor] ?: 0
-        (from..to).map { if (it == 0) minor else "$minor.$it" }
-    }.toList()
+    val start = parse(startStr)
+    val end = parse(endStr)
+
+    val orderedBases = latestPatches.keys.toList()
+
+    val startIndex = orderedBases.indexOf(start.base)
+    val endIndex = orderedBases.indexOf(end.base)
+
+    require(startIndex != -1) {
+        "Unknown Minecraft version base: ${start.base}"
+    }
+
+    require(endIndex != -1) {
+        "Unknown Minecraft version base: ${end.base}"
+    }
+
+    require(startIndex <= endIndex) {
+        "Start version must be before end version"
+    }
+
+    val result = mutableListOf<String>()
+
+    for (i in startIndex..endIndex) {
+
+        val base = orderedBases[i]
+
+        val fromPatch =
+            if (base == start.base) start.patch else 0
+
+        val toPatch =
+            if (base == end.base)
+                end.patch
+            else
+                latestPatches[base]!!
+
+        for (patch in fromPatch..toPatch) {
+            result += if (patch == 0) {
+                base
+            } else {
+                "$base.$patch"
+            }
+        }
+    }
+
+    return result
 }
 
 tasks.register("echoSupportedMinecraftVersions") {
