@@ -3,6 +3,7 @@ package net.mvndicraft.templateworldregenerator.regeneration;
 import java.util.Arrays;
 import java.util.Map;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
+import net.mvndicraft.templateworldregenerator.util.NBTCompondTagUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -18,6 +19,7 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
     public void run() {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
             TemplateWorldRegeneratorPlugin.debug("Inside from world");
+            TemplateWorldRegeneratorPlugin.info("Regenerating chunk " + chunkX() + " " + chunkZ());
             Chunk chunkFrom = from().getChunkAt(chunkX(), chunkZ());
             TWRChunkSnapshot twrChunkSnapshot = new TWRChunkSnapshot(chunkFrom);
             applySnapshot(twrChunkSnapshot);
@@ -58,6 +60,18 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
                     chunkTo.getBlock(bx, y, bz).setBlockData(data, false);
                 }
             }
+        }
+        replaceBlockEntities(twrChunkSnapshot, chunkTo);
+    }
+
+    private void replaceBlockEntities(TWRChunkSnapshot twrChunkSnapshot, Chunk chunkTo) {
+        for (BlockEntitySnapshot blockEntity : twrChunkSnapshot.blockEntities()) {
+            // Location locationTo = new Location(chunkTo.getWorld(), blockEntity.x(), blockEntity.y(), blockEntity.z());
+            // BlockState blockEntityTo = chunkTo.getBlock(locationTo.getBlockX() % 16, locationTo.getBlockY(), locationTo.getBlockZ() % 16)
+            // .getState();
+            TemplateWorldRegeneratorPlugin
+                    .info("Restoring block entity at " + blockEntity.x() + " " + blockEntity.y() + " " + blockEntity.z());
+            NBTCompondTagUtil.restoreBlockEntity(blockEntity, chunkTo);
         }
     }
 

@@ -135,6 +135,7 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
         }
     }
     public static void info(String message) { log(Level.INFO, message); }
+    public static void info(Supplier<String> messageProvider) { log(Level.INFO, messageProvider); }
     public static void info(String message, Throwable e) { log(Level.INFO, message, e); }
     public static void warning(String message) { log(Level.WARNING, message); }
     public static void warning(String message, Throwable e) { log(Level.WARNING, message, e); }
