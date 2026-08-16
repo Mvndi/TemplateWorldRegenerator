@@ -19,7 +19,6 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, Run
     public void run() {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
             TemplateWorldRegeneratorPlugin.debug("Inside from world");
-            TemplateWorldRegeneratorPlugin.info("Regenerating chunk " + chunkX() + " " + chunkZ());
             Chunk chunkFrom = from().getChunkAt(chunkX(), chunkZ());
             TWRChunkSnapshot twrChunkSnapshot = new TWRChunkSnapshot(chunkFrom);
             applySnapshot(twrChunkSnapshot);
