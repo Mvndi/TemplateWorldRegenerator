@@ -48,7 +48,7 @@ dependencies {
     compileOnly("net.thenextlvl:worlds:$worldsVersion")
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
+    implementation("co.aikar:acf-paper:0.5.1-20260511.221425-52") // 0.5.1-SNAPSHOT is not an OK version for Maven Central.
 
     // compileOnly("org.popcraft:chunky-common:$chunkyVersion")
     compileOnly("com.palmergames.bukkit.towny:towny:$townyVersion")
