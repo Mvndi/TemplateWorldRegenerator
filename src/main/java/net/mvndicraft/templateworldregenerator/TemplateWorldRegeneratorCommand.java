@@ -31,8 +31,8 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
     @Description("Regenerate the chunk the player is standing on")
     public static void onRegenerate(CommandSender commandSender) {
         if (commandSender instanceof Player player) {
-            int chunkX = player.getLocation().getBlockX() / 16;
-            int chunkZ = player.getLocation().getBlockZ() / 16;
+            int chunkX = Math.floorDiv(player.getLocation().getBlockX(), 16);
+            int chunkZ = Math.floorDiv(player.getLocation().getBlockZ(), 16);
             TemplateWorldRegeneratorPlugin.debug("regenerateChunk runned by a player in " + chunkX + " " + chunkZ);
 
             new ChunkRegenerator(chunkX, chunkZ, TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
