@@ -159,14 +159,14 @@ public class WorldRegenerator {
         new ChunkRegenerator(chunkCoordinate.x(), chunkCoordinate.z(),
                 TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
                 TemplateWorldRegeneratorPlugin.getInstance().getToWorld(),
-                this::canStartChunkUpdate,
+                () -> canStartChunkUpdate(chunkCoordinate),
                 chunk -> !TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk),
                 () -> retryLater(job, toWorld, chunkCoordinate),
                 () -> finishRegeneration(job, chunkCoordinate),
                 () -> finishRegeneration(job, chunkCoordinate)).run();
     }
 
-    private boolean canStartChunkUpdate() {
+    private boolean canStartChunkUpdate(ChunkCoordinate chunkCoordinate) {
         int currentTick = Bukkit.getCurrentTick();
         long now = System.nanoTime();
         Thread currentThread = Thread.currentThread();
@@ -184,7 +184,29 @@ public class WorldRegenerator {
         long maxMillisPerTick = Math.max(minRemainingMillisPerTick, configuredMaxMillis);
         long elapsedNanos = now - tickBudget.startedAtNanos();
         long maxElapsedNanos = TimeUnit.MILLISECONDS.toNanos(maxMillisPerTick - minRemainingMillisPerTick);
-        return elapsedNanos < maxElapsedNanos;
+        boolean canStart = elapsedNanos < maxElapsedNanos;
+        if (!canStart) {
+            logBudgetExceeded(chunkCoordinate, currentThread, currentTick, elapsedNanos, maxElapsedNanos,
+                    maxMillisPerTick, minRemainingMillisPerTick);
+        }
+        return canStart;
+    }
+
+    private void logBudgetExceeded(ChunkCoordinate chunkCoordinate, Thread currentThread, int currentTick,
+            long elapsedNanos, long maxElapsedNanos, long maxMillisPerTick, long minRemainingMillisPerTick) {
+        double elapsedMillis = elapsedNanos / 1_000_000D;
+        double maxElapsedMillis = maxElapsedNanos / 1_000_000D;
+        double remainingMillis = Math.max(0D, maxMillisPerTick - elapsedMillis);
+        TemplateWorldRegeneratorPlugin.info("Skipping chunk regeneration this region tick for chunk "
+                + chunkCoordinate.x() + " " + chunkCoordinate.z()
+                + " on thread \"" + currentThread.getName() + "\""
+                + " at server tick " + currentTick
+                + " because TWR already used " + String.format("%.3f", elapsedMillis) + " ms"
+                + " / allowed start window " + String.format("%.3f", maxElapsedMillis) + " ms"
+                + " (max_millis_per_tick=" + maxMillisPerTick
+                + ", min_remaining_millis_per_tick=" + minRemainingMillisPerTick
+                + ", estimated remaining=" + String.format("%.3f", remainingMillis) + " ms)."
+                + " The chunk will be retried with RegionScheduler#runDelayed(..., 1L).");
     }
 
     private void retryLater(RegenerationJob job, World toWorld, ChunkCoordinate chunkCoordinate) {
