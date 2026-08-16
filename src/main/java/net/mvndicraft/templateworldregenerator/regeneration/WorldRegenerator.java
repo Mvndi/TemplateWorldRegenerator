@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
 import net.mvndicraft.templateworldregenerator.util.ChunkCoordinate;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 
@@ -38,7 +39,8 @@ public class WorldRegenerator {
         return Math.max(0, currentJob.totalChunks() - regeneratedChunks.size());
     }
 
-    public void regenerateIfNeeded(Chunk chunk, Runnable runAtTheEndInRegionScheduler, boolean bypassCurrentJob) {
+    public void regenerateIfNeeded(Chunk chunk, Runnable runAtTheEndInRegionScheduler, boolean bypassCurrentJob,
+            boolean runAtTheEndInRegionSchedulerEvenIfNoChunkRegenerator) {
         TemplateWorldRegeneratorPlugin.debug("regenerateIfNeeded runned for chunk " + chunk.getX() + " " + chunk.getZ());
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
         World toWorld = chunk.getWorld();
@@ -56,9 +58,12 @@ public class WorldRegenerator {
                 new ChunkRegenerator(chunk.getX(), chunk.getZ(), TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
                         TemplateWorldRegeneratorPlugin.getInstance().getToWorld(), runAtTheEndInRegionScheduler).run();
             }
+        } else if (runAtTheEndInRegionSchedulerEvenIfNoChunkRegenerator) {
+            Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), toWorld, chunk.getX(), chunk.getZ(),
+                    t -> runAtTheEndInRegionScheduler.run());
         }
     }
-    public void regenerateIfNeeded(Chunk chunk) { regenerateIfNeeded(chunk, () -> {}, false); }
+    public void regenerateIfNeeded(Chunk chunk) { regenerateIfNeeded(chunk, () -> {}, false, false); }
 
     private record RegenerationJob(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         private boolean contains(ChunkCoordinate chunkCoordinate) {
