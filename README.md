@@ -34,8 +34,8 @@ The plugin jar file will be in build/libs/
 ### TODO minor world improvement
 
 - Custom copy rule for leaves in chunks that are at the border:
-  - Add the leaves that are outside the regenerated area but that replace air and are connected to logs inside the regenerated area.
-  - Remove the leaves that have been placed but that are not connected to logs
+- Add the leaves that are outside the regenerated area but that replace air and are connected to logs inside the regenerated area.
+- Remove the leaves that have been placed but that are not connected to logs
 
 
 
@@ -48,3 +48,23 @@ The plugin jar file will be in build/libs/
 /world teleport mvndi:overworld Hydrolien ~ ~ ~
 /world teleport worlds:world_template Hydrolien ~ ~ ~
 ```
+
+## Deploy
+
+### To GitHub releases, Hangar & Modrinth
+
+Push a tag to Git to trigger a GitHub Action release that will create a new GitHub release and publish to Hangar & Modrinth.
+```sh
+git tag 1.2.3
+git push --tags
+```
+
+### To Maven Central
+
+*Require ossrhUsername & ossrhPassword in ~/.gradle/gradle.properties*
+
+```sh
+./gradlew clean publish
+./gradlew jreleaserDeploy
+```
+The published lib will be available [on Maven Central](https://central.sonatype.com/artifact/net.mvndicraft.templateworldregenerator/templateworldregenerator).
