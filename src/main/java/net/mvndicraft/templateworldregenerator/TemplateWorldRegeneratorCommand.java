@@ -59,9 +59,12 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
     @Subcommand("regenerationProgress")
     @Description("Returns the number of chunks to regenerate and the total number of chunks to regenerate in the world")
     public static void onRegenerationProgress(CommandSender commandSender) {
-        commandSender.sendMessage(Component.text(
-                "Chunks to regenerate: " + TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksToRegenerateCount())
-                + "/" + TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksRegeneratedCount());
+        int chunksToRegenerate = TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksToRegenerateCount();
+        int chunksRegenerated = TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksRegeneratedCount();
+        int chunksTotal = TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksTotalCount();
+
+        commandSender.sendMessage(Component.text("Chunks to regenerate: " + chunksToRegenerate
+                + " - regenerated: " + chunksRegenerated + "/" + chunksTotal));
     }
 
 }

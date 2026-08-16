@@ -3,6 +3,7 @@ package net.mvndicraft.templateworldregenerator.regeneration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
 import net.mvndicraft.templateworldregenerator.util.NBTCompondTagUtil;
 import org.bukkit.Bukkit;
@@ -16,16 +17,15 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.persistence.PersistentDataType;
 
 public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, BooleanSupplier canStartChunkUpdate,
-        Runnable onBudgetExceeded, Runnable onChunkRegenerated) {
+        Predicate<Chunk> canRegenerateChunk, Runnable onBudgetExceeded, Runnable onChunkSkipped, Runnable onChunkRegenerated) {
 
     public ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
-        this(chunkX, chunkZ, from, to, () -> true, () -> { }, () -> { });
+        this(chunkX, chunkZ, from, to, () -> true, chunk -> true, () -> {}, () -> {}, () -> {});
     }
 
     public void run() {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
             TemplateWorldRegeneratorPlugin.debug("Inside from world");
-            TemplateWorldRegeneratorPlugin.info("Regenerating chunk " + chunkX() + " " + chunkZ());
             Chunk chunkFrom = from().getChunkAt(chunkX(), chunkZ());
             TWRChunkSnapshot twrChunkSnapshot = new TWRChunkSnapshot(chunkFrom);
             applySnapshot(twrChunkSnapshot);
@@ -41,6 +41,10 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, Boo
                 return;
             }
             Chunk chunkTo = to().getChunkAt(chunkX(), chunkZ());
+            if (!canRegenerateChunk().test(chunkTo)) {
+                onChunkSkipped().run();
+                return;
+            }
             killEntities(chunkTo);
             replaceBlocks(twrChunkSnapshot, chunkTo);
             placeEntities(twrChunkSnapshot);

@@ -11,12 +11,15 @@ import org.bukkit.World;
 
 public class WorldRegenerator {
     private static final String MAX_MILLIS_PER_TICK_CONFIG = "max_millis_per_tick";
+    private static final String CHUNKS_TO_SCHEDULE_AT_ONCE_CONFIG = "chunks_to_schedule_at_once";
     private static final long DEFAULT_MAX_MILLIS_PER_TICK = 50L;
+    private static final int DEFAULT_CHUNKS_TO_SCHEDULE_AT_ONCE = 1000;
     private static final long MIN_REMAINING_MILLIS_PER_TICK = 5L;
 
     private final ConcurrentHashMap<Thread, TickBudget> tickBudgets = new ConcurrentHashMap<>();
     private final Set<ChunkCoordinate> regeneratedChunks = ConcurrentHashMap.newKeySet();
     private final Set<ChunkCoordinate> regeneratingChunks = ConcurrentHashMap.newKeySet();
+    private final Set<ChunkCoordinate> runningChunks = ConcurrentHashMap.newKeySet();
     private final Set<ChunkCoordinate> scheduledRetryChunks = ConcurrentHashMap.newKeySet();
     private volatile RegenerationJob regenerationJob;
 
@@ -33,15 +36,18 @@ public class WorldRegenerator {
 
         regeneratedChunks.clear();
         regeneratingChunks.clear();
+        runningChunks.clear();
         scheduledRetryChunks.clear();
         tickBudgets.clear();
         regenerationJob = new RegenerationJob(minChunkX, minChunkZ, maxChunkX, maxChunkZ);
+        scheduleMoreChunks(regenerationJob);
     }
 
     public void stopRegeneration() {
         regenerationJob = null;
         regeneratedChunks.clear();
         regeneratingChunks.clear();
+        runningChunks.clear();
         scheduledRetryChunks.clear();
         tickBudgets.clear();
     }
@@ -62,6 +68,14 @@ public class WorldRegenerator {
         return Math.max(0, regeneratedChunks.size());
     }
 
+    public int getChunksTotalCount() {
+        RegenerationJob currentJob = regenerationJob;
+        if (currentJob == null) {
+            return 0;
+        }
+        return currentJob.totalChunks();
+    }
+
     public void regenerateIfNeeded(Chunk chunk) {
         TemplateWorldRegeneratorPlugin.debug("regenerateIfNeeded runned for chunk " + chunk.getX() + " " + chunk.getZ());
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
@@ -71,19 +85,84 @@ public class WorldRegenerator {
                 // it's the to world where to replace
                 && toWorld.getUID().equals(TemplateWorldRegeneratorPlugin.getInstance().getToWorld().getUID())
                 // it a chunk to regenerate
-                && currentJob != null && currentJob.contains(chunkCoordinate) && !regeneratedChunks.contains(chunkCoordinate)
-                && !regeneratingChunks.contains(chunkCoordinate)
-                // it's not a town or a road
-                && !TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
-            TemplateWorldRegeneratorPlugin.debug("Regenerating chunk " + chunk.getX() + " " + chunk.getZ());
-            if (regeneratingChunks.add(chunkCoordinate)) {
-                scheduledRetryChunks.remove(chunkCoordinate);
-                new ChunkRegenerator(chunk.getX(), chunk.getZ(), TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
-                        TemplateWorldRegeneratorPlugin.getInstance().getToWorld(), this::canStartChunkUpdate,
-                        () -> retryLater(currentJob, toWorld, chunkCoordinate), () -> finishRegeneration(currentJob, chunkCoordinate))
-                                .run();
+                && currentJob != null && currentJob.contains(chunkCoordinate) && !regeneratedChunks.contains(chunkCoordinate)) {
+            if (TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
+                finishRegeneration(currentJob, chunkCoordinate);
+                return;
             }
+            startRegeneration(currentJob, toWorld, chunkCoordinate);
         }
+    }
+
+    private synchronized void scheduleMoreChunks(RegenerationJob job) {
+        if (regenerationJob != job) {
+            return;
+        }
+
+        World toWorld = TemplateWorldRegeneratorPlugin.getInstance().getToWorld();
+        if (toWorld == null) {
+            return;
+        }
+
+        while (regenerationJob == job && getScheduledChunksCount() < getChunksToScheduleAtOnce()) {
+            ChunkCoordinate chunkCoordinate = job.nextChunk();
+            if (chunkCoordinate == null) {
+                return;
+            }
+            scheduleChunk(job, toWorld, chunkCoordinate);
+        }
+    }
+
+    private int getScheduledChunksCount() {
+        return regeneratingChunks.size() + scheduledRetryChunks.size();
+    }
+
+    private int getChunksToScheduleAtOnce() {
+        int configuredChunkCount = TemplateWorldRegeneratorPlugin.getInstance().getConfig()
+                .getInt(CHUNKS_TO_SCHEDULE_AT_ONCE_CONFIG, DEFAULT_CHUNKS_TO_SCHEDULE_AT_ONCE);
+        return Math.max(1, configuredChunkCount);
+    }
+
+    private void scheduleChunk(RegenerationJob job, World toWorld, ChunkCoordinate chunkCoordinate) {
+        if (regenerationJob != job || regeneratedChunks.contains(chunkCoordinate)
+                || scheduledRetryChunks.contains(chunkCoordinate) || !regeneratingChunks.add(chunkCoordinate)) {
+            return;
+        }
+
+        Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), toWorld, chunkCoordinate.x(),
+                chunkCoordinate.z(), task -> {
+                    if (regenerationJob != job) {
+                        return;
+                    }
+                    Chunk chunk = toWorld.getChunkAt(chunkCoordinate.x(), chunkCoordinate.z());
+                    if (TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
+                        finishRegeneration(job, chunkCoordinate);
+                        return;
+                    }
+                    startRegeneration(job, toWorld, chunkCoordinate);
+                });
+    }
+
+    private void startRegeneration(RegenerationJob job, World toWorld, ChunkCoordinate chunkCoordinate) {
+        if (regenerationJob != job || regeneratedChunks.contains(chunkCoordinate)) {
+            return;
+        }
+        if (!regeneratingChunks.contains(chunkCoordinate) && !regeneratingChunks.add(chunkCoordinate)) {
+            return;
+        }
+        if (!runningChunks.add(chunkCoordinate)) {
+            return;
+        }
+        scheduledRetryChunks.remove(chunkCoordinate);
+        TemplateWorldRegeneratorPlugin.debug("Regenerating chunk " + chunkCoordinate.x() + " " + chunkCoordinate.z());
+        new ChunkRegenerator(chunkCoordinate.x(), chunkCoordinate.z(),
+                TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
+                TemplateWorldRegeneratorPlugin.getInstance().getToWorld(),
+                this::canStartChunkUpdate,
+                chunk -> !TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk),
+                () -> retryLater(job, toWorld, chunkCoordinate),
+                () -> finishRegeneration(job, chunkCoordinate),
+                () -> finishRegeneration(job, chunkCoordinate)).run();
     }
 
     private boolean canStartChunkUpdate() {
@@ -109,6 +188,7 @@ public class WorldRegenerator {
             return;
         }
         regeneratingChunks.remove(chunkCoordinate);
+        runningChunks.remove(chunkCoordinate);
         if (!scheduledRetryChunks.add(chunkCoordinate)) {
             return;
         }
@@ -116,7 +196,7 @@ public class WorldRegenerator {
                 chunkCoordinate.z(), task -> {
                     scheduledRetryChunks.remove(chunkCoordinate);
                     if (regenerationJob == job) {
-                        regenerateIfNeeded(toWorld.getChunkAt(chunkCoordinate.x(), chunkCoordinate.z()));
+                        scheduleChunk(job, toWorld, chunkCoordinate);
                     }
                 }, 1L);
     }
@@ -127,15 +207,48 @@ public class WorldRegenerator {
         }
         regeneratedChunks.add(chunkCoordinate);
         regeneratingChunks.remove(chunkCoordinate);
+        runningChunks.remove(chunkCoordinate);
         scheduledRetryChunks.remove(chunkCoordinate);
+        scheduleMoreChunks(job);
     }
 
     private record TickBudget(int tick, long startedAtNanos) {}
 
-    private record RegenerationJob(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
+    private static class RegenerationJob {
+        private final int minChunkX;
+        private final int minChunkZ;
+        private final int maxChunkX;
+        private final int maxChunkZ;
+        private int nextChunkX;
+        private int nextChunkZ;
+
+        RegenerationJob(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
+            this.minChunkX = minChunkX;
+            this.minChunkZ = minChunkZ;
+            this.maxChunkX = maxChunkX;
+            this.maxChunkZ = maxChunkZ;
+            this.nextChunkX = minChunkX;
+            this.nextChunkZ = minChunkZ;
+        }
+
         private boolean contains(ChunkCoordinate chunkCoordinate) {
             return chunkCoordinate.x() >= minChunkX && chunkCoordinate.x() <= maxChunkX && chunkCoordinate.z() >= minChunkZ
                     && chunkCoordinate.z() <= maxChunkZ;
+        }
+
+        private synchronized ChunkCoordinate nextChunk() {
+            if (nextChunkX > maxChunkX) {
+                return null;
+            }
+
+            ChunkCoordinate chunkCoordinate = new ChunkCoordinate(nextChunkX, nextChunkZ);
+            if (nextChunkZ < maxChunkZ) {
+                nextChunkZ++;
+            } else {
+                nextChunkZ = minChunkZ;
+                nextChunkX++;
+            }
+            return chunkCoordinate;
         }
 
         private int totalChunks() {
