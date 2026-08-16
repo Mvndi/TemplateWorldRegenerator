@@ -57,7 +57,9 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
 
                     BlockData data = twrChunkSnapshot.chunkSnapshot().getBlockData(bx, y, bz);
 
-                    chunkTo.getBlock(bx, y, bz).setBlockData(data, false);
+                    if (!chunkTo.getBlock(bx, y, bz).getBlockData().equals(data)) {
+                        chunkTo.getBlock(bx, y, bz).setBlockData(data, false);
+                    }
                 }
             }
         }
