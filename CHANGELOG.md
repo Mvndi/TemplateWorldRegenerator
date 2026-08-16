@@ -1,3 +1,6 @@
+# 0.4.2
+- API allow to bypassCurrentJob
+
 # 0.4.1
 - Provide an API to regenerate chunks deployed via Maven Central.
 - Improve performances.

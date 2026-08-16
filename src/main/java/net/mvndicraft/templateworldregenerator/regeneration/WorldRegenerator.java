@@ -38,7 +38,7 @@ public class WorldRegenerator {
         return Math.max(0, currentJob.totalChunks() - regeneratedChunks.size());
     }
 
-    public void regenerateIfNeeded(Chunk chunk, Runnable runAtTheEndInRegionScheduler) {
+    public void regenerateIfNeeded(Chunk chunk, Runnable runAtTheEndInRegionScheduler, boolean bypassCurrentJob) {
         TemplateWorldRegeneratorPlugin.debug("regenerateIfNeeded runned for chunk " + chunk.getX() + " " + chunk.getZ());
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
         World toWorld = chunk.getWorld();
@@ -47,7 +47,8 @@ public class WorldRegenerator {
                 // it's the to world where to replace
                 && toWorld.getUID().equals(TemplateWorldRegeneratorPlugin.getInstance().getToWorld().getUID())
                 // it a chunk to regenerate
-                && currentJob != null && currentJob.contains(chunkCoordinate) && !regeneratedChunks.contains(chunkCoordinate)
+                && ((currentJob != null && currentJob.contains(chunkCoordinate) && !regeneratedChunks.contains(chunkCoordinate))
+                        || bypassCurrentJob)
                 // it's not a town or a road
                 && !TemplateWorldRegeneratorPlugin.getInstance().isTownOrRoad(chunk)) {
             TemplateWorldRegeneratorPlugin.debug("Regenerating chunk " + chunk.getX() + " " + chunk.getZ());
@@ -57,7 +58,7 @@ public class WorldRegenerator {
             }
         }
     }
-    public void regenerateIfNeeded(Chunk chunk) { regenerateIfNeeded(chunk, () -> {}); }
+    public void regenerateIfNeeded(Chunk chunk) { regenerateIfNeeded(chunk, () -> {}, false); }
 
     private record RegenerationJob(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         private boolean contains(ChunkCoordinate chunkCoordinate) {
