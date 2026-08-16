@@ -2,3 +2,5 @@ debug: false
 
 to_world: "world"
 from_world: "world_template"
+
+regenerate_on_chunk_load: false

@@ -32,7 +32,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.aikar.co/content/groups/aikar/")
     maven("https://repo.thenextlvl.net/releases")
-    maven("https://repo.codemc.io/repository/maven-public/") // For Chunky
+    // maven("https://repo.codemc.io/repository/maven-public/") // For Chunky
     maven("https://repo.glaremasters.me/repository/towny/") // For Towny
 }
 

@@ -8,6 +8,8 @@ import org.bukkit.event.world.ChunkLoadEvent;
 public class ChunkLoadListener implements Listener {
     @EventHandler
     public void onChunkLoadEvent(ChunkLoadEvent event) {
-        TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().regenerateIfNeeded(event.getChunk());
+        if (TemplateWorldRegeneratorPlugin.getInstance().getConfig().getBoolean("regenerate_on_chunk_load")) {
+            TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().regenerateIfNeeded(event.getChunk());
+        }
     }
 }
