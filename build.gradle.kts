@@ -2,13 +2,15 @@ plugins {
     `java-library`
     id("com.gradleup.shadow") version "9.3.1" // "9.4.1"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" // paperweight // Check for new versions at https://plugins.gradle.org/plugin/io.papermc.paperweight.userdev
-    `maven-publish`
+    id("maven-publish")
+    id("signing") // Add ./gradlew signArchives
     checkstyle // Ensures correctly formatted code
     pmd // Code quality checks
     id("org.sonarqube") version "7.3.0.8198" // Advanced code quality checks
     id("xyz.jpenilla.run-paper") version "3.0.2" // Paper server for testing/hotloading JVM
     id("io.papermc.hangar-publish-plugin") version "0.1.4"
     id("com.modrinth.minotaur") version "2.+" // cf https://github.com/modrinth/minotaur
+    id("org.jreleaser") version "1.24.0"
 }
 
 group = "net.mvndicraft.${project.name.lowercase()}"
@@ -57,7 +59,10 @@ dependencies {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(25)) // 25
+    // Configure the java toolchain. This allows gradle to auto-provision JDK 21 on systems that only have JDK 8 installed for example.
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+    withJavadocJar()
+    withSourcesJar()
 }
 
 checkstyle {
@@ -78,12 +83,6 @@ sonar {
     property("sonar.projectName", project.name)
     property("sonar.host.url", "https://mvndisonar.formiko.fr")
   }
-}
-
-publishing {
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
-    }
 }
 
 tasks {
@@ -345,4 +344,86 @@ modrinth {
 
 tasks.named("modrinth") {
     dependsOn(tasks.named("modrinthSyncBody"))
+}
+
+
+publishing {
+  publications {
+    create<MavenPublication>("mavenJava") {
+      from(components["java"])
+
+      artifactId = project.name.lowercase()
+      pom {
+        name.set(project.name.lowercase())
+        packaging = "jar"
+        url.set("https://github.com/Mvndi/${project.name}")
+        inceptionYear.set("2026")
+        description = project.description
+        licenses {
+          license {
+            name.set("MIT license")
+            url.set("https://github.com/Mvndi/${project.name}/blob/master/LICENSE.md")
+          }
+        }
+        developers {
+          developer {
+            id.set("hydrolienf")
+            name.set("HydrolienF")
+            email.set("hydrolien.f@gmail.com")
+          }
+        }
+        scm {
+          connection.set("scm:git:git@github.com:Mvndi/${project.name}.git")
+          developerConnection.set("scm:git:ssh:git@github.com:Mvndi/${project.name}.git")
+          url.set("https://github.com/Mvndi/${project.name}")
+        }
+      }
+    }
+  }
+  repositories {
+    maven {
+        // url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
+        name = "PreDeploy"
+        url = uri(layout.buildDirectory.dir("pre-deploy"))
+
+    }
+  }
+}
+
+jreleaser {
+    project {
+        name.set("${project.name}")
+        copyright.set("Hydrolien")
+        description.set(findProperty("description")?.toString() ?: "Default description")
+        website.set("https://github.com/Mvndi/${project.name}")
+    }
+
+    deploy {
+        maven {
+            mavenCentral {
+                create("sonatype") {
+                    active.set(org.jreleaser.model.Active.ALWAYS)
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    username.set(findProperty("ossrhUsername")?.toString()
+                        ?: System.getenv("OSSRH_USERNAME"))
+                    password.set(findProperty("ossrhPassword")?.toString()
+                        ?: System.getenv("OSSRH_PASSWORD"))
+                    stagingRepository("build/pre-deploy")  // call as function
+
+                    applyMavenCentralRules = false
+                }
+            }
+        }
+    }
+
+    release {
+        github {
+            enabled.set(false)
+        }
+    }
+}
+
+signing {
+    useGpgCmd() // uses local gpg executable
+    sign(publishing.publications["mavenJava"])
 }

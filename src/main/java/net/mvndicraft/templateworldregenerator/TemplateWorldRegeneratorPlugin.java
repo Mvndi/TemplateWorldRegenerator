@@ -101,7 +101,7 @@ public final class TemplateWorldRegeneratorPlugin extends JavaPlugin {
 
     /**
      * Test if the to world have a town or a road at that location.
-     * Towny & TownyRoads are optinal dependencies and it will always return false if they are not enabled.
+     * Towny and TownyRoads are optinal dependencies and it will always return false if they are not enabled.
      */
     public boolean isTownOrRoad(Chunk chunk) {
         Location toTestLocation = new Location(getToWorld(), chunk.getX() * 16D, 0D, chunk.getZ() * 16D);
