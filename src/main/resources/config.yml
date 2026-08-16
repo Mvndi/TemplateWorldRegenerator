@@ -6,4 +6,5 @@ from_world: "world_template"
 regenerate_on_chunk_load: false
 
 max_millis_per_tick: 50
+min_remaining_millis_per_tick: 25
 chunks_to_schedule_at_once: 1000

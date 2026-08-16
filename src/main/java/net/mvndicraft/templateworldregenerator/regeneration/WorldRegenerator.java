@@ -11,10 +11,11 @@ import org.bukkit.World;
 
 public class WorldRegenerator {
     private static final String MAX_MILLIS_PER_TICK_CONFIG = "max_millis_per_tick";
+    private static final String MIN_REMAINING_MILLIS_PER_TICK_CONFIG = "min_remaining_millis_per_tick";
     private static final String CHUNKS_TO_SCHEDULE_AT_ONCE_CONFIG = "chunks_to_schedule_at_once";
     private static final long DEFAULT_MAX_MILLIS_PER_TICK = 50L;
+    private static final long DEFAULT_MIN_REMAINING_MILLIS_PER_TICK = 25L;
     private static final int DEFAULT_CHUNKS_TO_SCHEDULE_AT_ONCE = 1000;
-    private static final long MIN_REMAINING_MILLIS_PER_TICK = 5L;
 
     private final ConcurrentHashMap<Thread, TickBudget> tickBudgets = new ConcurrentHashMap<>();
     private final Set<ChunkCoordinate> regeneratedChunks = ConcurrentHashMap.newKeySet();
@@ -177,9 +178,12 @@ public class WorldRegenerator {
 
         long configuredMaxMillis = TemplateWorldRegeneratorPlugin.getInstance().getConfig().getLong(MAX_MILLIS_PER_TICK_CONFIG,
                 DEFAULT_MAX_MILLIS_PER_TICK);
-        long maxMillisPerTick = Math.max(MIN_REMAINING_MILLIS_PER_TICK, configuredMaxMillis);
+        long configuredMinRemainingMillis = TemplateWorldRegeneratorPlugin.getInstance().getConfig().getLong(
+                MIN_REMAINING_MILLIS_PER_TICK_CONFIG, DEFAULT_MIN_REMAINING_MILLIS_PER_TICK);
+        long minRemainingMillisPerTick = Math.max(0L, configuredMinRemainingMillis);
+        long maxMillisPerTick = Math.max(minRemainingMillisPerTick, configuredMaxMillis);
         long elapsedNanos = now - tickBudget.startedAtNanos();
-        long maxElapsedNanos = TimeUnit.MILLISECONDS.toNanos(maxMillisPerTick - MIN_REMAINING_MILLIS_PER_TICK);
+        long maxElapsedNanos = TimeUnit.MILLISECONDS.toNanos(maxMillisPerTick - minRemainingMillisPerTick);
         return elapsedNanos < maxElapsedNanos;
     }
 
