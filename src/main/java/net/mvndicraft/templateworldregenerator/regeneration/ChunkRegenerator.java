@@ -72,7 +72,7 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, Run
             // BlockState blockEntityTo = chunkTo.getBlock(locationTo.getBlockX() % 16, locationTo.getBlockY(), locationTo.getBlockZ() % 16)
             // .getState();
             TemplateWorldRegeneratorPlugin
-                    .info("Restoring block entity at " + blockEntity.x() + " " + blockEntity.y() + " " + blockEntity.z());
+                    .debug("Restoring block entity at " + blockEntity.x() + " " + blockEntity.y() + " " + blockEntity.z());
             NBTCompondTagUtil.restoreBlockEntity(blockEntity, chunkTo);
         }
     }
