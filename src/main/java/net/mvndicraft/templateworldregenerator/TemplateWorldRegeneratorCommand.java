@@ -63,8 +63,8 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
         int chunksRegenerated = TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksRegeneratedCount();
         int chunksTotal = TemplateWorldRegeneratorPlugin.getInstance().getWorldRegenerator().getChunksTotalCount();
 
-        commandSender.sendMessage(Component.text("Chunks to regenerate: " + chunksToRegenerate
-                + " - regenerated: " + chunksRegenerated + "/" + chunksTotal));
+        commandSender.sendMessage(
+                Component.text("Chunks to regenerate: " + chunksToRegenerate + " - regenerated: " + chunksRegenerated + "/" + chunksTotal));
     }
 
 }
