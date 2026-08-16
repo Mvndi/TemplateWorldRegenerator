@@ -2,6 +2,7 @@ package net.mvndicraft.templateworldregenerator.regeneration;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import net.mvndicraft.templateworldregenerator.TemplateWorldRegeneratorPlugin;
 import net.mvndicraft.templateworldregenerator.util.NBTCompondTagUtil;
 import org.bukkit.Bukkit;
@@ -14,7 +15,12 @@ import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
 import org.bukkit.persistence.PersistentDataType;
 
-public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
+public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, BooleanSupplier canStartChunkUpdate,
+        Runnable onBudgetExceeded, Runnable onChunkRegenerated) {
+
+    public ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
+        this(chunkX, chunkZ, from, to, () -> true, () -> { }, () -> { });
+    }
 
     public void run() {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
@@ -30,12 +36,17 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
     private void applySnapshot(TWRChunkSnapshot twrChunkSnapshot) {
 
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), to(), chunkX(), chunkZ(), t -> {
+            if (!canStartChunkUpdate().getAsBoolean()) {
+                onBudgetExceeded().run();
+                return;
+            }
             Chunk chunkTo = to().getChunkAt(chunkX(), chunkZ());
             killEntities(chunkTo);
             replaceBlocks(twrChunkSnapshot, chunkTo);
             placeEntities(twrChunkSnapshot);
             replacePdcData(twrChunkSnapshot, chunkTo);
             saveLastRegenerationDate(chunkTo);
+            onChunkRegenerated().run();
             TemplateWorldRegeneratorPlugin.debug(() -> "Regenerated chunk " + chunkX() + " " + chunkZ());
         });
     }
