@@ -36,7 +36,8 @@ public class TemplateWorldRegeneratorCommand extends BaseCommand {
             TemplateWorldRegeneratorPlugin.debug("regenerateChunk runned by a player in " + chunkX + " " + chunkZ);
 
             new ChunkRegenerator(chunkX, chunkZ, TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
-                    TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
+                    TemplateWorldRegeneratorPlugin.getInstance().getToWorld(),
+                    () -> player.sendActionBar(Component.text("Chunk regenerated"))).run();
         }
     }
 

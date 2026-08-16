@@ -38,7 +38,7 @@ public class WorldRegenerator {
         return Math.max(0, currentJob.totalChunks() - regeneratedChunks.size());
     }
 
-    public void regenerateIfNeeded(Chunk chunk) {
+    public void regenerateIfNeeded(Chunk chunk, Runnable runAtTheEndInRegionScheduler) {
         TemplateWorldRegeneratorPlugin.debug("regenerateIfNeeded runned for chunk " + chunk.getX() + " " + chunk.getZ());
         ChunkCoordinate chunkCoordinate = new ChunkCoordinate(chunk.getX(), chunk.getZ());
         World toWorld = chunk.getWorld();
@@ -53,10 +53,11 @@ public class WorldRegenerator {
             TemplateWorldRegeneratorPlugin.debug("Regenerating chunk " + chunk.getX() + " " + chunk.getZ());
             if (regeneratedChunks.add(chunkCoordinate)) {
                 new ChunkRegenerator(chunk.getX(), chunk.getZ(), TemplateWorldRegeneratorPlugin.getInstance().getFromWorld(),
-                        TemplateWorldRegeneratorPlugin.getInstance().getToWorld()).run();
+                        TemplateWorldRegeneratorPlugin.getInstance().getToWorld(), runAtTheEndInRegionScheduler).run();
             }
         }
     }
+    public void regenerateIfNeeded(Chunk chunk) { regenerateIfNeeded(chunk, () -> {}); }
 
     private record RegenerationJob(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         private boolean contains(ChunkCoordinate chunkCoordinate) {

@@ -14,7 +14,7 @@ import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
 import org.bukkit.persistence.PersistentDataType;
 
-public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
+public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to, Runnable runAtTheEndInRegionScheduler) {
 
     public void run() {
         Bukkit.getRegionScheduler().run(TemplateWorldRegeneratorPlugin.getInstance(), from(), chunkX(), chunkZ(), t -> {
@@ -36,6 +36,7 @@ public record ChunkRegenerator(int chunkX, int chunkZ, World from, World to) {
             placeEntities(twrChunkSnapshot);
             replacePdcData(twrChunkSnapshot, chunkTo);
             saveLastRegenerationDate(chunkTo);
+            runAtTheEndInRegionScheduler.run();
             TemplateWorldRegeneratorPlugin.debug(() -> "Regenerated chunk " + chunkX() + " " + chunkZ());
         });
     }

@@ -1,3 +1,10 @@
+# 0.4.1
+- Provide an API to regenerate chunks deployed via Maven Central.
+- Improve performances.
+- Fix chest & other complexe blocks that weren't copied correctly. This need NMS making the plugin only supported for 1.21.11 for now.
+- Ignore Towny & TownyRoads chunks
+- Replace chunk persistent data containers.
+
 # 0.2.2
 Replace world blocks & entities
 
