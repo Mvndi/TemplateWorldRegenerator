@@ -5,4 +5,4 @@ from_world: "world_template"
 
 regenerate_on_chunk_load: false
 
-max_millis_per_tick: 45
+max_millis_per_tick: 50
